@@ -406,10 +406,17 @@ public class BdpDataPlanePlugin extends DataPlanePlugin {
     Set<BgpAdvertisement> externalAdverts =
         _batfish.processExternalBgpAnnouncements(configurations);
     SortedMap<Integer, SortedMap<Integer, Integer>> recoveryIterationHashCodes = new TreeMap<>();
+    SortedMap<Integer, SortedSet<Prefix>> iterationOscillatingPrefixes = new TreeMap<>();
     do {
       configurations.values().forEach(c -> nodes.put(c.getHostname(), new Node(c, nodes)));
     } while (computeFixedPoint(
-        nodes, topology, dp, externalAdverts, ae, recoveryIterationHashCodes));
+        nodes,
+        topology,
+        dp,
+        externalAdverts,
+        ae,
+        recoveryIterationHashCodes,
+        iterationOscillatingPrefixes));
     computeFibs(nodes);
     dp.setNodes(nodes);
     dp.setTopology(topology);
@@ -718,7 +725,8 @@ public class BdpDataPlanePlugin extends DataPlanePlugin {
       BdpDataPlane dp,
       Set<BgpAdvertisement> externalAdverts,
       BdpAnswerElement ae,
-      SortedMap<Integer, SortedMap<Integer, Integer>> recoveryIterationHashCodes) {
+      SortedMap<Integer, SortedMap<Integer, Integer>> recoveryIterationHashCodes,
+      SortedMap<Integer, SortedSet<Prefix>> iterationOscillatingPrefixes) {
     SortedSet<Prefix> oscillatingPrefixes = ae.getOscillatingPrefixes();
 
     // BEGIN DONE ONCE (except main rib)
@@ -834,8 +842,8 @@ public class BdpDataPlanePlugin extends DataPlanePlugin {
             iterationAbstractRoutes,
             lowestIterationWithThisHashCode,
             numDependentRoutesIterations,
-            oscillatingPrefixes,
-            ae.getCompletedOscillationRecoveryAttempts());
+            iterationOscillatingPrefixes,
+            ae);
         return true;
       }
       compareToPreviousIteration(nodes, currentChangedMonitor, checkFixedPointCompleted);
@@ -1311,8 +1319,10 @@ public class BdpDataPlanePlugin extends DataPlanePlugin {
    * @param iterationAbstractRoutes A mapping from iteration number to detailed route information
    * @param start The first iteration in the oscillation
    * @param end The last iteration in the oscillation, which should be identical to the first
-   * @param oscillatingPrefixes A set of prefixes to be populated with the set of all prefixes
-   *     involved in the oscillation
+   * @param iterationOcillatingPrefixes Mapping from recovery iteration number to a set of prefixes
+   *     oscillating in that iteration
+   * @param answerElement The answer element for which the recovery iteration number and full set of
+   *     oscillating prefixes are to be updated
    */
   private void handleOscillation(
       SortedMap<Integer, SortedMap<Integer, Integer>> recoveryIterationHashCodes,
@@ -1321,9 +1331,43 @@ public class BdpDataPlanePlugin extends DataPlanePlugin {
           iterationAbstractRoutes,
       int start,
       int end,
-      SortedSet<Prefix> oscillatingPrefixes,
-      int completedOscillationRecoveryAttempts) {
-    if (completedOscillationRecoveryAttempts == _settings.getBdpMaxOscillationRecoveryAttempts()) {
+      SortedMap<Integer, SortedSet<Prefix>> iterationOscillatingPrefixes,
+      BdpAnswerElement answerElement) {
+    int completedOscillationRecoveryAttempts =
+        answerElement.getCompletedOscillationRecoveryAttempts() + 1;
+    /*
+     * In order to record oscillating prefixes, we need routes from at least the first iteration of
+     * the oscillation to the final iteration.
+     */
+    int minOscillationRecoveryIterations = end - start + 1;
+    boolean enoughInfoForRecovery =
+        _settings.getBdpRecordAllIterations()
+            || _maxRecordedIterations >= minOscillationRecoveryIterations;
+    boolean printIterations =
+        _settings.getBdpPrintOscillatingIterations() || _settings.getBdpPrintAllIterations();
+    boolean enoughInfoForErrorReport = enoughInfoForRecovery || !printIterations;
+    boolean attemptRecovery =
+        completedOscillationRecoveryAttempts <= _settings.getBdpMaxOscillationRecoveryAttempts();
+    if ((attemptRecovery && !enoughInfoForRecovery)
+        || (!attemptRecovery && printIterations && !enoughInfoForErrorReport)) {
+      /*
+       * Run again, but this time record enough information to either recover or throw with
+       * sufficiently detailed error report. This does not count as a recovery attempt.
+       */
+      _maxRecordedIterations = minOscillationRecoveryIterations;
+      return;
+    }
+    SortedSet<Prefix> currentOscillatingPrefixes = null;
+    if (attemptRecovery || printIterations) {
+      currentOscillatingPrefixes =
+          Collections.unmodifiableSortedSet(
+              collectOscillatingPrefixes(iterationRoutes, iterationAbstractRoutes, start, end));
+      iterationOscillatingPrefixes.put(
+          completedOscillationRecoveryAttempts, currentOscillatingPrefixes);
+      answerElement.getOscillatingPrefixes().addAll(currentOscillatingPrefixes);
+    }
+    answerElement.setCompletedOscillationRecoveryAttempts(completedOscillationRecoveryAttempts);
+    if (!attemptRecovery) {
       String msg =
           "Iteration "
               + end
@@ -1331,35 +1375,27 @@ public class BdpDataPlanePlugin extends DataPlanePlugin {
               + start
               + "\n"
               + recoveryIterationHashCodes;
-      if (!_settings.getBdpPrintOscillatingIterations() && !_settings.getBdpPrintAllIterations()) {
+      if (!printIterations) {
         throw new BdpOscillationException(msg);
-      } else if (!_settings.getBdpPrintAllIterations()) {
+      }
+      String msgWithPrefixes =
+          String.format(
+              "%s\nAll oscillating prefixes: %s\nOscillating prefixes by iteration: %s",
+              msg, currentOscillatingPrefixes, iterationOscillatingPrefixes);
+      if (!_settings.getBdpPrintAllIterations()) {
         String errorMessage =
             _settings.getBdpDetail()
-                ? debugAbstractRoutesIterations(msg, iterationAbstractRoutes, start, end)
-                : debugIterations(msg, iterationRoutes, start, end);
+                ? debugAbstractRoutesIterations(
+                    msgWithPrefixes, iterationAbstractRoutes, start, end)
+                : debugIterations(msgWithPrefixes, iterationRoutes, start, end);
         throw new BdpOscillationException(errorMessage);
       } else {
         String errorMessage =
             _settings.getBdpDetail()
-                ? debugAbstractRoutesIterations(msg, iterationAbstractRoutes, 1, end)
-                : debugIterations(msg, iterationRoutes, 1, end);
+                ? debugAbstractRoutesIterations(msgWithPrefixes, iterationAbstractRoutes, 1, end)
+                : debugIterations(msgWithPrefixes, iterationRoutes, 1, end);
         throw new BdpOscillationException(errorMessage);
       }
-    }
-    /*
-     * In order to record oscillating prefixes, we need routes from at least the first iteration of
-     * the oscillation to the final iteration.
-     */
-    int minOscillationRecoveryIterations = end - start + 1;
-    boolean enoughInfo =
-        _settings.getBdpRecordAllIterations()
-            || _maxRecordedIterations >= minOscillationRecoveryIterations;
-    if (enoughInfo) {
-      oscillatingPrefixes.addAll(
-          collectOscillatingPrefixes(iterationRoutes, iterationAbstractRoutes, start, end));
-    } else {
-      _maxRecordedIterations = minOscillationRecoveryIterations;
     }
   }
 
