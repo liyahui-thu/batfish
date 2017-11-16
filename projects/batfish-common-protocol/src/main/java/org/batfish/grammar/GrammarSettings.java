@@ -28,6 +28,13 @@ public interface GrammarSettings {
   int getMaxParserContextTokens();
 
   /**
+   * In error report, the maximum number of lines to display of a parsing/lexing error.
+   *
+   * @return The max number of context lines
+   */
+  int getMaxParserErrorLines();
+
+  /**
    * Controls whether parse trees are stored in parse job results.
    *
    * @return true iff parse trees should be stored in parse job results
