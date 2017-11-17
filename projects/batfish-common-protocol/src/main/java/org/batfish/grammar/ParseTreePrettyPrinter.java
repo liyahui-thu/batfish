@@ -24,8 +24,45 @@ public class ParseTreePrettyPrinter implements ParseTreeListener {
     return printer._ptSentences;
   }
 
-  public static String print(ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser) {
-    return String.join("\n", getParseTreeSentences(ctx, combinedParser).getSentences());
+  public static String printWithCharacterLimit(List<String> strings, int maxStringLength) {
+    StringBuilder sb = new StringBuilder();
+    int usedStringCount = 0;
+
+    // Only add the strings we can without exceeding the maxStringLength specified
+    for(String string : strings) {
+      usedStringCount += 1;
+
+      // Add a newline before strings after the first
+      if (usedStringCount > 1) sb.append("\n");
+
+      // Append the full string if we won't exceed maxStringLength doing so, otherwise append part
+      if (maxStringLength <= 0 || sb.length() + string.length() <= maxStringLength) {
+        sb.append(string);
+      } else {
+        // See if we can append anything at all
+        // If not, we need to adjust the usedStringCount so the numAddtlLines is correct
+        if (maxStringLength == sb.length()) usedStringCount--;
+        sb.append(string.substring(0, maxStringLength - sb.length()));
+
+        int numOfAdditionalLines = strings.size() - usedStringCount;
+        sb.append("...");
+        if (numOfAdditionalLines == 1) {
+          sb.append("and 1 more line");
+        } else if (numOfAdditionalLines > 1) {
+          sb.append("and ");
+          sb.append(numOfAdditionalLines);
+          sb.append(" more lines");
+        }
+        break;
+      }
+    }
+    return sb.toString();
+
+  }
+
+  public static String print(ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser, int maxStringLength) {
+    List<String> strings = getParseTreeSentences(ctx, combinedParser).getSentences();
+    return printWithCharacterLimit(strings, maxStringLength);
   }
 
   private BatfishCombinedParser<?, ?> _combinedParser;
