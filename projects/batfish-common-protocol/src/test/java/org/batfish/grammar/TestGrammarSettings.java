@@ -12,7 +12,7 @@ public class TestGrammarSettings implements GrammarSettings {
 
   private final int _maxParserContextTokens;
 
-  private final int _maxParserErrorLines;
+  private final int _maxParseTreePrintLength;
 
   private final boolean _printParseTree;
 
@@ -26,7 +26,7 @@ public class TestGrammarSettings implements GrammarSettings {
    * @param disableUnrecognized See {@link GrammarSettings#getDisableUnrecognized()}
    * @param maxParserContextLines See {@link GrammarSettings#getMaxParserContextLines()}
    * @param maxParserContextTokens See {@link GrammarSettings#getMaxParserContextTokens()}
-   * @param maxParserErrorLines See {@link GrammarSettings#getMaxParserErrorLines()}
+   * @param maxParseTreePrintLength See {@link GrammarSettings#getMaxParseTreePrintLength()}
    * @param printParseTree See {@link GrammarSettings#getPrintParseTree()}
    * @param throwOnLexerError See {@link GrammarSettings#getThrowOnLexerError()}
    * @param throwOnParserError See {@link GrammarSettings#getThrowOnParserError()}
@@ -35,14 +35,14 @@ public class TestGrammarSettings implements GrammarSettings {
       boolean disableUnrecognized,
       int maxParserContextLines,
       int maxParserContextTokens,
-      int maxParserErrorLines,
+      int maxParseTreePrintLength,
       boolean printParseTree,
       boolean throwOnLexerError,
       boolean throwOnParserError) {
     _disableUnrecognized = disableUnrecognized;
     _maxParserContextLines = maxParserContextLines;
     _maxParserContextTokens = maxParserContextTokens;
-    _maxParserErrorLines = maxParserErrorLines;
+    _maxParseTreePrintLength = maxParseTreePrintLength;
     _printParseTree = printParseTree;
     _throwOnLexerError = throwOnLexerError;
     _throwOnParserError = throwOnParserError;
@@ -64,8 +64,8 @@ public class TestGrammarSettings implements GrammarSettings {
   }
 
   @Override
-  public int getMaxParserErrorLines() {
-    return _maxParserErrorLines;
+  public int getMaxParseTreePrintLength() {
+    return _maxParseTreePrintLength;
   }
 
   @Override

@@ -437,7 +437,7 @@ public final class Settings extends BaseSettings implements BdpSettings, Grammar
 
   private static final String ARG_MAX_PARSER_CONTEXT_TOKENS = "maxparsercontexttokens";
 
-  private static final String ARG_MAX_PARSER_ERROR_LINES = "maxparsererrorlines";
+  private static final String ARG_MAX_PARSE_TREE_PRINT_LENGTH = "maxparsetreeprintlength";
 
   private static final String ARG_MAX_RUNTIME_MS = "maxruntime";
 
@@ -601,7 +601,7 @@ public final class Settings extends BaseSettings implements BdpSettings, Grammar
 
   private int _maxParserContextTokens;
 
-  private int _maxParserErrorLines;
+  private int _maxParseTreePrintLength;
 
   private int _maxRuntimeMs;
 
@@ -916,8 +916,8 @@ public final class Settings extends BaseSettings implements BdpSettings, Grammar
   }
 
   @Override
-  public int getMaxParserErrorLines() {
-    return _maxParserErrorLines;
+  public int getMaxParseTreePrintLength() {
+    return _maxParseTreePrintLength;
   }
 
   public int getMaxRuntimeMs() {
@@ -1146,7 +1146,7 @@ public final class Settings extends BaseSettings implements BdpSettings, Grammar
     setDefaultProperty(BfConsts.ARG_LOG_LEVEL, "debug");
     setDefaultProperty(ARG_MAX_PARSER_CONTEXT_LINES, 10);
     setDefaultProperty(ARG_MAX_PARSER_CONTEXT_TOKENS, 10);
-    setDefaultProperty(ARG_MAX_PARSER_ERROR_LINES, 0);
+    setDefaultProperty(ARG_MAX_PARSE_TREE_PRINT_LENGTH, 0);
     setDefaultProperty(ARG_MAX_RUNTIME_MS, 0);
     setDefaultProperty(ARG_NO_SHUFFLE, false);
     setDefaultProperty(BfConsts.ARG_OUTPUT_ENV, null);
@@ -1350,8 +1350,8 @@ public final class Settings extends BaseSettings implements BdpSettings, Grammar
         ARGNAME_NUMBER);
 
     addOption(
-        ARG_MAX_PARSER_ERROR_LINES,
-        "max number of lines to print on parser error",
+        ARG_MAX_PARSE_TREE_PRINT_LENGTH,
+        "max number of characters to print for parsetree pretty print",
         ARGNAME_NUMBER);
 
     addOption(ARG_MAX_RUNTIME_MS, "maximum time (in ms) to allow a task to run", ARGNAME_NUMBER);
@@ -1535,7 +1535,7 @@ public final class Settings extends BaseSettings implements BdpSettings, Grammar
     _logTee = getBooleanOptionValue(ARG_LOG_TEE);
     _maxParserContextLines = getIntOptionValue(ARG_MAX_PARSER_CONTEXT_LINES);
     _maxParserContextTokens = getIntOptionValue(ARG_MAX_PARSER_CONTEXT_TOKENS);
-    _maxParserErrorLines = getIntOptionValue(ARG_MAX_PARSER_ERROR_LINES);
+    _maxParseTreePrintLength = getIntOptionValue(ARG_MAX_PARSE_TREE_PRINT_LENGTH);
     _maxRuntimeMs = getIntOptionValue(ARG_MAX_RUNTIME_MS);
     _outputEnvironmentName = getStringOptionValue(BfConsts.ARG_OUTPUT_ENV);
     _pedanticAsError = getBooleanOptionValue(BfConsts.ARG_PEDANTIC_AS_ERROR);
@@ -1668,8 +1668,8 @@ public final class Settings extends BaseSettings implements BdpSettings, Grammar
     _maxParserContextTokens = maxParserContextTokens;
   }
 
-  public void setMaxParserErrorLines(int maxParserErrorLines) {
-    _maxParserErrorLines = maxParserErrorLines;
+  public void setMaxParseTreePrintLength(int maxParseTreePrintLength) {
+    _maxParseTreePrintLength = maxParseTreePrintLength;
   }
 
   public void setMaxRuntimeMs(int runtimeMs) {

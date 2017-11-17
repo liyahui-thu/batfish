@@ -28,11 +28,11 @@ public interface GrammarSettings {
   int getMaxParserContextTokens();
 
   /**
-   * In error report, the maximum number of lines to display of a parsing/lexing error.
+   * The maximum number of characters display of a parsing tree when prettyPrinting.
    *
-   * @return The max number of context lines
+   * @return The max number of characters to display
    */
-  int getMaxParserErrorLines();
+  int getMaxParseTreePrintLength();
 
   /**
    * Controls whether parse trees are stored in parse job results.
