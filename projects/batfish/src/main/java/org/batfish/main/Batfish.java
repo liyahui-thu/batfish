@@ -420,7 +420,8 @@ public class Batfish extends PluginConsumer implements IBatfish {
       logger.info("OK\n");
     } else {
       logger.info("OK, PRINTING PARSE TREE:\n");
-      logger.info(ParseTreePrettyPrinter.print(tree, parser, parser.getSettings().getMaxParseTreePrintLength()) + "\n\n");
+      int maxLen = parser.getSettings().getMaxParseTreePrintLength();
+      logger.info(ParseTreePrettyPrinter.print(tree, parser, maxLen) + "\n\n");
     }
     return tree;
   }

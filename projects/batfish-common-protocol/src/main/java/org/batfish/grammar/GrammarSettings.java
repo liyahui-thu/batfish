@@ -28,7 +28,7 @@ public interface GrammarSettings {
   int getMaxParserContextTokens();
 
   /**
-   * The maximum number of characters display of a parsing tree when prettyPrinting.
+   * The maximum number of characters display of a parse tree when prettyPrinting.
    *
    * @return The max number of characters to display
    */

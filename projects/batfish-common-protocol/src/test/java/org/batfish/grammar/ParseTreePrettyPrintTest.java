@@ -1,11 +1,11 @@
 package org.batfish.grammar;
 
-import java.util.ArrayList;
-import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 
 public class ParseTreePrettyPrintTest {
