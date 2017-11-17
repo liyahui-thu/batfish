@@ -3,7 +3,7 @@
 set -e
 
 if [[ $(uname) == 'Darwin' ]]; then
-   GNU_FIND=gfind
+   GNU_FIND=find
 else
    GNU_FIND=find
 fi

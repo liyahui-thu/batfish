@@ -16,6 +16,25 @@ import org.batfish.common.util.CommonUtil;
 
 public class ParseTreePrettyPrinter implements ParseTreeListener {
 
+  private BatfishCombinedParser<?, ?> _combinedParser;
+  private ParserRuleContext _ctx;
+  private int _indent;
+  private ParseTreeSentences _ptSentences;
+  private List<String> _ruleNames;
+  private Vocabulary _vocabulary;
+
+  private ParseTreePrettyPrinter(
+      ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser) {
+    Parser grammar = combinedParser.getParser();
+    List<String> ruleNames = Arrays.asList(grammar.getRuleNames());
+    _vocabulary = grammar.getVocabulary();
+    _combinedParser = combinedParser;
+    _ruleNames = ruleNames;
+    _ctx = ctx;
+    _ptSentences = new ParseTreeSentences();
+    _indent = 0;
+  }
+
   public static ParseTreeSentences getParseTreeSentences(
       ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser) {
     ParseTreeWalker walker = new ParseTreeWalker();
@@ -29,7 +48,7 @@ public class ParseTreePrettyPrinter implements ParseTreeListener {
     int usedStringCount = 0;
 
     // Only add the strings we can without exceeding the maxStringLength specified
-    for(String string : strings) {
+    for (String string : strings) {
       usedStringCount += 1;
 
       // Add a newline before strings after the first
@@ -61,38 +80,13 @@ public class ParseTreePrettyPrinter implements ParseTreeListener {
       }
     }
     return sb.toString();
-
   }
 
-  public static String print(ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser,
-      int maxStringLength) {
+  public static String print(
+      ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser, int maxStringLength) {
 
     List<String> strings = getParseTreeSentences(ctx, combinedParser).getSentences();
     return printWithCharacterLimit(strings, maxStringLength);
-  }
-
-  private BatfishCombinedParser<?, ?> _combinedParser;
-
-  private ParserRuleContext _ctx;
-
-  private int _indent;
-
-  private ParseTreeSentences _ptSentences;
-
-  private List<String> _ruleNames;
-
-  private Vocabulary _vocabulary;
-
-  private ParseTreePrettyPrinter(
-      ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser) {
-    Parser grammar = combinedParser.getParser();
-    List<String> ruleNames = Arrays.asList(grammar.getRuleNames());
-    _vocabulary = grammar.getVocabulary();
-    _combinedParser = combinedParser;
-    _ruleNames = ruleNames;
-    _ctx = ctx;
-    _ptSentences = new ParseTreeSentences();
-    _indent = 0;
   }
 
   @Override

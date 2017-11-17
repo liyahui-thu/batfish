@@ -36,6 +36,5 @@ public class ParseTreePrettyPrintTest {
 
     string = ParseTreePrettyPrinter.printWithCharacterLimit(strings, 6);
     assertThat(string, equalTo("1234\n5..."));
-
   }
 }
