@@ -885,7 +885,7 @@ public class Batfish extends PluginConsumer implements IBatfish {
     Set<NodeInterfacePair> flowSinks = null;
     if (differentialContext) {
       pushBaseEnvironment();
-      flowSinks = loadDataPlane().getFlowSinks();
+      flowSinks = new LinkedHashSet<>(loadDataPlane().getFlowSinks());
       popEnvironment();
     }
     SortedSet<String> blacklistNodes = getNodeBlacklist();
@@ -904,7 +904,7 @@ public class Batfish extends PluginConsumer implements IBatfish {
     if (!differentialContext) {
       flowSinks = computeFlowSinks(configurations, topology);
     }
-    return flowSinks;
+    return ImmutableSet.copyOf(flowSinks);
   }
 
   private Set<NodeInterfacePair> computeFlowSinks(
