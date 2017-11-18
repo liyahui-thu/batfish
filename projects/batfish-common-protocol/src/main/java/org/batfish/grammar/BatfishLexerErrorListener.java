@@ -42,8 +42,7 @@ public class BatfishLexerErrorListener extends BatfishGrammarErrorListener {
               + "\n");
     }
     sb.append("Parse tree for current rule:\n");
-    int maxLen = _settings.getMaxParseTreePrintLength();
-    sb.append(ParseTreePrettyPrinter.print(ctx, _combinedParser, maxLen) + "\n");
+    sb.append(ParseTreePrettyPrinter.print(ctx, _combinedParser) + "\n");
     sb.append("Lexer mode: " + lexer.getMode() + "\n");
     sb.append("Lexer state variables:\n");
     sb.append(lexer.printStateVariables());

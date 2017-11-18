@@ -45,25 +45,24 @@ public class ParseTreePrettyPrinter implements ParseTreeListener {
 
   public static String printWithCharacterLimit(List<String> strings, int maxStringLength) {
     StringBuilder sb = new StringBuilder();
+    // Keep track of how many string we have used from the list to display how many we omit
     int usedStringCount = 0;
 
     // Only add the strings we can without exceeding the maxStringLength specified
     for (String string : strings) {
-      usedStringCount += 1;
-
       // Add a newline before strings after the first
-      if (usedStringCount > 1) {
+      if (usedStringCount > 0) {
         sb.append("\n");
       }
 
       // Append the full string if we won't exceed maxStringLength doing so, otherwise append part
       if (maxStringLength <= 0 || sb.length() + string.length() <= maxStringLength) {
+        usedStringCount++;
         sb.append(string);
       } else {
-        // See if we can append anything at all
-        // If not, we need to adjust the usedStringCount so the numAddtlLines is correct
-        if (maxStringLength == sb.length()) {
-          usedStringCount--;
+        // Only count this string as used if we can append something to the stringbuilder
+        if (maxStringLength > sb.length()) {
+          usedStringCount++;
         }
         sb.append(string.substring(0, maxStringLength - sb.length()));
 
@@ -82,9 +81,8 @@ public class ParseTreePrettyPrinter implements ParseTreeListener {
     return sb.toString();
   }
 
-  public static String print(
-      ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser, int maxStringLength) {
-
+  public static String print(ParserRuleContext ctx, BatfishCombinedParser<?, ?> combinedParser) {
+    int maxStringLength = combinedParser.getSettings().getMaxParseTreePrintLength();
     List<String> strings = getParseTreeSentences(ctx, combinedParser).getSentences();
     return printWithCharacterLimit(strings, maxStringLength);
   }

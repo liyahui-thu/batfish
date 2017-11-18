@@ -236,8 +236,7 @@ public class Warnings implements Serializable {
     if (_printParseTree) {
       sb.append(prefix + "Parse tree follows:\n");
       String parseTreePrefix = prefix + "PARSE TREE: ";
-      int maxLen = parser.getSettings().getMaxParseTreePrintLength();
-      String parseTreeText = ParseTreePrettyPrinter.print(ctx, parser, maxLen);
+      String parseTreeText = ParseTreePrettyPrinter.print(ctx, parser);
       String[] parseTreeLines = parseTreeText.split("\n");
       for (String parseTreeLine : parseTreeLines) {
         sb.append(parseTreePrefix + parseTreeLine + "\n");
