@@ -56,6 +56,7 @@ public class ParseTreePrettyPrinter implements ParseTreeListener {
       }
 
       // Append the full string if we won't exceed maxStringLength doing so, otherwise append part
+      // Or just keep appending if we are not limiting the string length (max <= 0)
       if (maxStringLength <= 0 || sb.length() + string.length() <= maxStringLength) {
         usedStringCount++;
         sb.append(string);
